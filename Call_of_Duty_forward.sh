@@ -8,7 +8,7 @@ read -p "Enter your client IP: " CLIENT_IP  # Store the client IP provided by th
 read -p "Do you want to add or delete the rules? (add/delete): " USER_ACTION  # Store the action provided by the user
 
 # Specify your WAN interface
-read -p "Enter your WAN interface (eg. eth0, enp1s0, etc): " INTERFACE # Define the network interface being used
+INTERFACE="enp1s0"  # Define the network interface being used
 
 # Check if action is add or delete
 if [[ "$USER_ACTION" == "add" ]]; then  # If the user wants to add rules
@@ -19,6 +19,15 @@ else
     echo "Invalid action. Please enter 'add' or 'delete'."  # If an invalid action is provided, print an error and exit
     exit 1
 fi
+# Drop known amplified UDP source ports (split into multiple rules due to 15 ports limit per rule)
+AMPLIFIED_PORTS1="19,53,123,161,37,111,137,389,445"  # Define first set of ports to be blocked
+AMPLIFIED_PORTS2="500,514,520,1900,2049,2086,2087"  # Define second set of ports to be blocked
+AMPLIFIED_PORTS3="3478,5060,11211"  # Define third set of ports to be blocked
+
+# Add or delete INPUT rules to drop packets from specified UDP source ports
+iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS1 -j DROP
+iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS2 -j DROP
+iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS3 -j DROP
 
 # TCP Ports
 # Add or delete DNAT (Destination NAT) rule for the specified TCP ports
@@ -33,13 +42,3 @@ iptables -t nat $ACTION PREROUTING -p udp -i $INTERFACE -m multiport --dports 30
 
 # Add or delete FORWARD rule to allow specified UDP ports through firewall
 iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --dports 3074,3478,4379:4380,27000:27031,27036 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
-
-# Drop known amplified UDP source ports (split into multiple rules due to 15 ports limit per rule)
-AMPLIFIED_PORTS1="19,53,123,161,37,111,137,389,445"  # Define first set of ports to be blocked
-AMPLIFIED_PORTS2="500,514,520,1900,2049,2086,2087"  # Define second set of ports to be blocked
-AMPLIFIED_PORTS3="3478,5060,11211"  # Define third set of ports to be blocked
-
-# Add or delete INPUT rules to drop packets from specified UDP source ports
-iptables $ACTION INPUT -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS1 -j DROP
-iptables $ACTION INPUT -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS2 -j DROP
-iptables $ACTION INPUT -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS3 -j DROP
