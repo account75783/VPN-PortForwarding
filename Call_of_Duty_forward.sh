@@ -25,9 +25,9 @@ AMPLIFIED_PORTS2="500,514,520,1900,2049,2086,2087"  # Define second set of ports
 AMPLIFIED_PORTS3="3478,5060,11211"  # Define third set of ports to be blocked
 
 # Add or delete INPUT rules to drop packets from specified UDP source ports
-iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS1 -j DROP
-iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS2 -j DROP
-iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS3 -j DROP
+iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS1 --dports 3074,27014:27050 -j DROP
+iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS2 --dports 3074,27014:27050 -j DROP
+iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS3 --dports 3074,27014:27050 -j DROP
 
 # TCP Ports
 # Add or delete DNAT (Destination NAT) rule for the specified TCP ports
