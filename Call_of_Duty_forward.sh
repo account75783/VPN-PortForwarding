@@ -40,5 +40,7 @@ iptables $ACTION FORWARD -p tcp -d $CLIENT_IP -m multiport --dports 3074,27014:2
 
 # UDP Ports
 # Add or delete DNAT rule for the specified UDP ports
-iptables -t nat $ACTION PREROUTING -p udp -i $INTERFACE -m multiport --dports 3074,3478,4379:4380,27000:27031,27036 -j DNAT --to-destination
+iptables -t nat $ACTION PREROUTING -p udp -i $INTERFACE -m multiport --dports 3074,3478,4379:4380,27000:27031,27036 -j DNAT --to-destination $CLIENT_IP
 
+# Add or delete FORWARD rule to allow specified UDP ports through firewall
+iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --dports 3074,3478,4379:4380,27000:27031,27036 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
