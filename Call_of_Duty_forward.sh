@@ -25,9 +25,11 @@ AMPLIFIED_PORTS2="500,514,520,1900,2049,2086,2087"  # Define second set of ports
 AMPLIFIED_PORTS3="3478,5060,11211"  # Define third set of ports to be blocked
 
 # Add or delete INPUT rules to drop packets from specified UDP source ports
-iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS1 --dports 3074,27014:27050 -j DROP
-iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS2 --dports 3074,27014:27050 -j DROP
-iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS3 --dports 3074,27014:27050 -j DROP
+iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS1 -j DROP
+iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS2 -j DROP
+iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --sports $AMPLIFIED_PORTS3 -j DROP
+
+iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --dports 3074,27014:27050 -j DROP
 
 # TCP Ports
 # Add or delete DNAT (Destination NAT) rule for the specified TCP ports
@@ -38,7 +40,5 @@ iptables $ACTION FORWARD -p tcp -d $CLIENT_IP -m multiport --dports 3074,27014:2
 
 # UDP Ports
 # Add or delete DNAT rule for the specified UDP ports
-iptables -t nat $ACTION PREROUTING -p udp -i $INTERFACE -m multiport --dports 3074,3478,4379:4380,27000:27031,27036 -j DNAT --to-destination $CLIENT_IP
+iptables -t nat $ACTION PREROUTING -p udp -i $INTERFACE -m multiport --dports 3074,3478,4379:4380,27000:27031,27036 -j DNAT --to-destination
 
-# Add or delete FORWARD rule to allow specified UDP ports through firewall
-iptables $ACTION FORWARD -p udp -d $CLIENT_IP -m multiport --dports 3074,3478,4379:4380,27000:27031,27036 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
